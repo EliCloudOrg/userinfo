@@ -1,0 +1,40 @@
+# ============================================================
+# EliCloud 用户资料服务 —— 本地开发编排（build: .，不用于生产）
+#
+# 完整的 SSO + file + userinfo 联调请用
+# EliCloudDesktop/local-dev/docker-compose.yml；本文件只用于单独跑 userinfo。
+#
+#   1. cp .env.example .env.local
+#   2. 把 FILE_SERVICE_BASE_URL 指向一个可达的 file 服务
+#   3. docker compose up -d
+#   4. curl http://127.0.0.1:8003/healthz
+# ============================================================
+services:
+  userinfo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 本地/国内构建统一走清华源；GitHub Actions 的镜像构建仍用 Dockerfile 默认官方源。
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    image: elicloud-userinfo:dev
+    container_name: userinfo-dev
+    restart: unless-stopped
+    user: "1002:1003"
+    env_file:
+      - .env.local
+    volumes:
+      - ./data:/data
+    ports:
+      # 只绑回环：本机 curl / SSH 隧道调试用（8000=sso、8001=mc、8002=file）
+      - "127.0.0.1:8003:8000"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

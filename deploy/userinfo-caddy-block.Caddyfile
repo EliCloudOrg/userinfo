@@ -1,0 +1,9 @@
+# 生产 Caddy 片段（由运维合入站点块；不是完整 Caddyfile）
+#
+# 对外：https://146.56.237.33/userinfo/v1/profile
+# 容器内：http://userinfo:8000/v1/profile
+#
+# 与 /file/*、/mc/* 一样，Caddy 负责剥掉前缀；userinfo 自己不感知 /userinfo。
+handle_path /userinfo/* {
+	reverse_proxy userinfo:8000
+}
