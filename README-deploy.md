@@ -2,9 +2,14 @@
 
 本仓库使用「GitHub Actions 触发 + 服务器自管」的自托管部署框架。
 
-> **当前状态（重要）**：`deploy/deploy.sh` 仍是框架骨架，只打印参数并退出，
-> **不会拉镜像、不会启动容器**。这是本次框架初始化的预期结果；真正的部署逻辑
-> 需要后续在 `deploy.sh` 的「项目自定义部署逻辑」段补齐，见 §8。
+> **当前状态（2026-10-27 已上线）**：`deploy/deploy.sh` 已补齐真实部署逻辑
+> （拉镜像 → 生成 compose → 等 healthy → 回环自检），`prod` 已推送并完成首次部署，
+> 容器 `userinfo`（healthy）与 Caddy 的 `/userinfo/*` 路由均已在线上。
+>
+> **镜像源（本机实测差异）**：Actions 仍推 `ghcr.io/elicloudorg/userinfo`；但服务器直连 ghcr.io
+> 拉大层会停在 `Pulling fs layer` 不动，因此 `/srv/userinfo/app.env` 里设了
+> `USERINFO_IMAGE_REPO=ghcr.nju.edu.cn/elicloudorg/userinfo`（公共 ghcr 加速源，包必须保持 public）。
+> 想改回直连只改这一行并重新部署即可。
 
 ## 部署架构
 
